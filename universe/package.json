@@ -1,0 +1,17 @@
+
+{
+  "packagingVersion": "4.0",
+  "upgradesFrom": ["%(upgrades-from)s"],
+  "downgradesTo": ["%(downgrades-to)s"],
+  "minDcosReleaseVersion": "1.10",
+  "name": "miniod",
+  "version": "%(package-version)s",
+  "maintainer": "%(maintainer)s",
+  "description": "Minio on DC/OS \n\nDocumentation: https://docs.mesosphere.com/services/minio", 
+  "selected": false,
+  "framework": true,
+  "tags": ["0.55.2", "miniod", "minio"],
+  "preInstallNotes": "Default configuration requires 4 agent nodes each with: 2 CPU | 252 MB MEM | 1 200 MB Disk.", 
+  "postInstallNotes": "DC/OS Minio is being installed!", 
+  "postUninstallNotes": "DC/OS Minio is being uninstalled."
+}

@@ -1,0 +1,307 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+ principal: {{FRAMEWORK_PRINCIPAL}}
+ user: {{FRAMEWORK_USER}}
+pods:
+ miniod:
+   count: {{MINIO_NODE_COUNT}}
+   image: {{MINIO_DOCKER_IMAGE}}
+   placement: '{{{MINIO_NODE_PLACEMENT}}}'
+   {{#ENABLE_VIRTUAL_NETWORK}}
+   networks:
+     {{VIRTUAL_NETWORK_NAME}}:
+       labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+   {{/ENABLE_VIRTUAL_NETWORK}}
+   resource-sets:
+     node-resources:
+       cpus: {{MINIO_NODE_CPUS}}
+       memory: {{MINIO_NODE_MEM}}
+       ports:
+         miniod:
+           port: {{MINIO_NODE_PORT}}
+           advertise: true
+           vip:
+             prefix: miniod
+             port: 9000
+       volumes:
+         data-repository:
+           path: data-path
+           type: {{MINIO_NODE_DISK_TYPE}}
+           size: {{MINIO_NODE_DISK}}
+         {{#ENABLE_MINIO_CACHE}}
+         cache-repository:
+           path: cache-path
+           type: {{CACHE_DISK_TYPE}}
+           size: {{CACHE_DISK}}
+         {{/ENABLE_MINIO_CACHE}}
+   {{#MINIO_SECRETS_ENABLED}}
+   secrets:
+     accesskey:
+       secret: {{FRAMEWORK_NAME}}/access_key
+       file: access_key_file
+     secretkey:
+       secret: {{FRAMEWORK_NAME}}/secret_key
+       file: secret_key_file
+   {{/MINIO_SECRETS_ENABLED}}
+   uris:
+     - {{BOOTSTRAP_URI}}
+   tasks:
+     node:
+       resource-set: node-resources
+       goal: RUNNING
+       cmd: |
+            {{#MINIO_SECRETS_ENABLED}}
+            export MINIO_ACCESS_KEY=`cat $MESOS_SANDBOX/access_key_file`
+            export MINIO_SECRET_KEY=`cat $MESOS_SANDBOX/secret_key_file`
+            {{/MINIO_SECRETS_ENABLED}}
+            {{^MINIO_SECRETS_ENABLED}}
+            export MINIO_ACCESS_KEY={{MINIO_ACCESS_KEY}}
+            export MINIO_SECRET_KEY={{MINIO_SECRET_KEY}}
+            {{/MINIO_SECRETS_ENABLED}}
+            export MINIO_BROWSER={{MINIO_BROWSER}}
+            export MINIO_STORAGE_CLASS_STANDARD={{MINIO_STORAGE_CLASS_STANDARD}}
+            export MINIO_STORAGE_CLASS_RRS={{MINIO_STORAGE_CLASS_RRS}}
+            {{#ENABLE_MINIO_CACHE}}
+            export MINIO_CACHE_EXPIRY={{MINIO_CACHE_EXPIRY}}
+            export MINIO_CACHE_EXCLUDE={{MINIO_CACHE_EXCLUDE}}
+            export MINIO_CACHE_MAXUSE={{MINIO_CACHE_MAXUSE}}
+            export MINIO_CACHE_DRIVES=/$MESOS_SANDBOX/cache-path
+            {{/ENABLE_MINIO_CACHE}}
+            export MINIO_HTTP_TRACE=/$MESOS_SANDBOX/stdout
+            ./bootstrap
+            
+            VAR=0
+            STATUS=0
+            for k in `seq 1 100` ; do
+                while [ $VAR -lt $COUNT ]; do
+                    curl -I -s http://miniod-${VAR}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}
+                    if [ 6 -eq $? ]
+                    then
+                        STATUS=0
+                        break
+                    else
+                        STATUS=1
+                    fi
+                    let VAR=VAR+1
+                done
+                if [ $STATUS -eq 1 ]
+                then
+                    break
+                fi
+                sleep 2s
+            done
+
+            {{#MINIO_SSL_ENABLED}}
+            cat $MESOS_SANDBOX/node.crt $MESOS_SANDBOX/node.ca > $MESOS_SANDBOX/public.crt
+            mkdir $MESOS_SANDBOX/certs
+            mkdir $MESOS_SANDBOX/certs/CAs
+            cp $MESOS_SANDBOX/node.key $MESOS_SANDBOX/certs/private.key
+            cp $MESOS_SANDBOX/public.crt $MESOS_SANDBOX/certs/
+            cp $MESOS_SANDBOX/node.ca $MESOS_SANDBOX/certs/CAs
+            {{/MINIO_SSL_ENABLED}}
+            MINIO_CMD="/usr/bin/docker-entrypoint.sh server --config-dir $MESOS_SANDBOX --address :{{MINIO_NODE_PORT}}" 
+            COUNTER=0
+            while [ $COUNTER -lt $COUNT ]; do
+            {{#MINIO_SSL_ENABLED}}
+            MINIO_CMD="${MINIO_CMD} https://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/${MESOS_SANDBOX}/data-path"
+            {{/MINIO_SSL_ENABLED}}
+            {{^MINIO_SSL_ENABLED}}
+            MINIO_CMD="${MINIO_CMD} http://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/${MESOS_SANDBOX}/data-path"
+            {{/MINIO_SSL_ENABLED}}
+            let COUNTER=COUNTER+1 
+            done 
+            exec ${MINIO_CMD}
+       {{#MINIO_SSL_ENABLED}}
+       transport-encryption:
+         - name: node
+           type: TLS
+       {{/MINIO_SSL_ENABLED}}
+       configs:
+         minio.properties:
+           template: config.json.mustache
+           dest: config.json
+       health-check:
+           cmd: |
+                echo Health Check
+                {{#MINIO_SSL_ENABLED}}
+                curl -s -k -o /dev/null -w "%{http_code}" https://miniod-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/minio/health/ready
+                {{/MINIO_SSL_ENABLED}}
+                {{^MINIO_SSL_ENABLED}}
+                curl -s -k -o /dev/null -w "%{http_code}" http://miniod-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/minio/health/ready
+                {{/MINIO_SSL_ENABLED}}
+
+           interval: 90 
+           grace-period: 100
+           max-consecutive-failures: 20
+           delay: 10
+           timeout: 120
+       readiness-check:
+           cmd: |
+                echo Running Readiness Check
+                /usr/bin/healthcheck.sh
+           interval: 100
+           delay: 10
+           timeout: 120
+       env:
+         COUNT: {{MINIO_NODE_COUNT}}
+ minios:
+   count: 1
+   uris:
+     - {{BOOTSTRAP_URI}}
+     - {{JAVA_URI}}
+     - {{MINIO_STATSD_JAR_URI}}
+   tasks:
+     metrics:
+       goal: RUNNING
+       essential: false
+       cmd: |
+             ./bootstrap
+             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre*/) && export JAVA_HOME=${JAVA_HOME%/} && export PATH=$(ls -d $JAVA_HOME/bin):$PATH
+             java -jar minio-statsd.jar $STATSD_UDP_HOST $STATSD_UDP_PORT 30 miniod $FRAMEWORK_VIP_HOST 9000 {{MINIO_SSL_ENABLED}}
+       {{#MINIO_SSL_ENABLED}}
+       transport-encryption:
+         - name: node
+           type: TLS
+       {{/MINIO_SSL_ENABLED}}
+       cpus: 0.2
+       memory: 1024 
+ minioc:
+   count: 1
+   image: {{MC_DOCKER_IMAGE}}
+   placement: '{{{MINIO_NODE_PLACEMENT}}}'
+   resource-sets:
+     backup-resources:
+       cpus: 2 
+       memory: 512
+   {{#MINIO_SECRETS_ENABLED}}
+   secrets:
+     accesskey:
+       secret: {{FRAMEWORK_NAME}}/access_key
+       file: access_key_file
+     secretkey:
+       secret: {{FRAMEWORK_NAME}}/secret_key
+       file: secret_key_file
+   {{/MINIO_SECRETS_ENABLED}}
+   uris:
+     - {{BOOTSTRAP_URI}}
+     - {{MINIO_INIT_SH}}
+     - {{MINIO_SYNCHRONIZE_SH}}
+   tasks:
+     backup:
+       resource-set: backup-resources
+       goal: ONCE
+       cmd: |
+            sh init.sh
+            sh synchronize-buckets.sh
+            servicename=`echo "$FRAMEWORK_NAME" | sed 's/\///g'`
+            N=0
+            for i in $(mc --config-folder $MESOS_SANDBOX ls minioclient/) ; do
+            if [ `expr $N % 5` -eq 4 ]
+            then
+                bucket=${i%/}
+                backupbucket=$servicename-$bucket
+                mc --config-folder $MESOS_SANDBOX mb s3compatibleclient/$backupbucket
+                mc --config-folder $MESOS_SANDBOX mirror --remove minioclient/$bucket s3compatibleclient/$backupbucket
+            fi
+            let "N= $N + 1"
+            done
+       {{#MINIO_SSL_ENABLED}}
+       transport-encryption:
+         - name: node
+           type: TLS
+       {{/MINIO_SSL_ENABLED}}
+
+       env:
+         MINIO_SECRETS_ENABLED: {{MINIO_SECRETS_ENABLED}}
+         MINIO_ACCESS_KEY: {{MINIO_ACCESS_KEY}}
+         MINIO_SECRET_KEY: {{MINIO_SECRET_KEY}}
+         MINIO_SSL_ENABLED: {{MINIO_SSL_ENABLED}}
+         MINIO_NODE_PORT: {{MINIO_NODE_PORT}}
+         STHREE_COMPATIBLE_URI: {{STHREE_COMPATIBLE_URI}}
+
+     restore:
+       resource-set: backup-resources
+       goal: ONCE
+       cmd: |
+            sh $MESOS_SANDBOX/init.sh
+            servicename=`echo "$FRAMEWORK_NAME" | sed 's/\///g'`
+            miniobucket=`echo ${S3_BUCKET} | sed -e s,${servicename}-,,`
+            mc --config-folder $MESOS_SANDBOX mb minioclient/$miniobucket
+            mc --config-folder $MESOS_SANDBOX mirror s3compatibleclient/${S3_BUCKET}/ minioclient/$miniobucket
+       {{#MINIO_SSL_ENABLED}}
+       transport-encryption:
+         - name: node
+           type: TLS
+       {{/MINIO_SSL_ENABLED}}
+       env:
+         MINIO_SECRETS_ENABLED: {{MINIO_SECRETS_ENABLED}}
+         MINIO_ACCESS_KEY: {{MINIO_ACCESS_KEY}}
+         MINIO_SECRET_KEY: {{MINIO_SECRET_KEY}}
+         MINIO_SSL_ENABLED: {{MINIO_SSL_ENABLED}}
+         MINIO_NODE_PORT: {{MINIO_NODE_PORT}}
+         STHREE_COMPATIBLE_URI: {{STHREE_COMPATIBLE_URI}}
+
+     recover:
+       resource-set: backup-resources
+       goal: ONCE
+       cmd: |
+            {{#MINIO_SECRETS_ENABLED}}
+            export MINIO_ACCESS_KEY=`cat $MESOS_SANDBOX/access_key_file`
+            export MINIO_SECRET_KEY=`cat $MESOS_SANDBOX/secret_key_file`
+            {{/MINIO_SECRETS_ENABLED}}
+            {{^MINIO_SECRETS_ENABLED}}
+            export MINIO_ACCESS_KEY={{MINIO_ACCESS_KEY}}
+            export MINIO_SECRET_KEY={{MINIO_SECRET_KEY}}
+            {{/MINIO_SECRETS_ENABLED}}
+            {{#MINIO_SSL_ENABLED}}
+            mkdir $MESOS_SANDBOX/certs
+            mkdir $MESOS_SANDBOX/certs/CAs
+            cp $MESOS_SANDBOX/node.ca $MESOS_SANDBOX/certs/CAs
+            mc --config-folder $MESOS_SANDBOX config host add minioclient https://miniod.${FRAMEWORK_VIP_HOST}:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+            {{/MINIO_SSL_ENABLED}}
+            {{^MINIO_SSL_ENABLED}}
+            mc --config-folder $MESOS_SANDBOX config host add minioclient http://miniod.${FRAMEWORK_VIP_HOST}:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+            {{/MINIO_SSL_ENABLED}}
+            mc --config-folder $MESOS_SANDBOX admin heal -r minioclient
+
+       {{#MINIO_SSL_ENABLED}}
+       transport-encryption:
+         - name: node
+           type: TLS
+       {{/MINIO_SSL_ENABLED}}
+    
+plans:
+  deploy:
+    strategy: serial
+    phases:
+       master-deploy:
+        strategy: parallel
+        pod: miniod
+       statsd-deploy:
+        strategy: parallel
+        pod: minios
+  backup:
+    strategy: serial
+    phases:
+      minio-client:
+        strategy: serial
+        pod: minioc
+        steps:
+          - default: [[backup]]
+  restore:
+    strategy: serial
+    phases:
+      minio-restore:
+        strategy: serial
+        pod: minioc
+        steps:
+          - default: [[restore]]
+  recover:
+    strategy: serial
+    phases:
+      minio-recover:
+        strategy: serial
+        pod: minioc
+        steps:
+          - default: [[recover]]
+

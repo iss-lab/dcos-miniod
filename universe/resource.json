@@ -1,0 +1,53 @@
+
+{
+  "assets": {
+    "uris": {
+      "jre-tar-gz": "https://downloads.mesosphere.com/java/server-jre-8u162-linux-x64.tar.gz",
+      "minio-statsd-jar": "https://downloads.mesosphere.com/miniod/assets/0.1.1-RELEASE.2019-04-26T02-11-47Z/minio-statsd.jar",
+      "libmesos-bundle-tar-gz": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.11.0.tar.gz",
+      "bootstrap-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/0.55.2/bootstrap.zip",
+      "executor-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/0.55.2/executor.zip",
+      "scheduler-zip": "https://ecosystem-repo.s3.amazonaws.com/sdk/artifacts/0.55.2/operator-scheduler.zip",
+      "svc": "%(artifacts-url)s/svc.yml",
+      "minio-config": "%(artifacts-url)s/config.json.mustache", 
+      "minio-init-sh": "%(artifacts-url)s/init.sh", 
+      "minio-synchronize-sh": "%(artifacts-url)s/synchronize-buckets.sh"
+    },
+    "container": {
+      "docker": {
+          "minio-cluster": "minio/minio:RELEASE.2018-07-31T02-11-47Z", 
+          "mc-cluster": "minio/mc:RELEASE.2018-09-10T23-39-12Z"
+      }
+    }
+  },
+  "images": {
+    "icon-small": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-small.png?raw=true",
+    "icon-medium": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-medium.png?raw=true",
+    "icon-large": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-large.png?raw=true"
+  },
+  "cli":{
+    "binaries":{
+      "darwin":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"c329d60aa5fea372115c371814a141f6615819db51935bd09a8265c8978115ac" } ],
+          "kind":"executable",
+          "url":"https://downloads.mesosphere.com/dcos-commons/artifacts/0.55.2/dcos-service-cli-darwin"
+        }
+      },
+      "linux":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"9690330cd5d7017ab7d747e31b28d30f817cf35cb8db700a5ceebaf628d0d299" } ],
+          "kind":"executable",
+          "url":"https://downloads.mesosphere.com/dcos-commons/artifacts/0.55.2/dcos-service-cli-linux"
+        }
+      },
+      "windows":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"75a6d593848f18b6fc5050f7dde18fb91c659b5b62825ba0eca0e8a5286d46bf" } ],
+          "kind":"executable",
+          "url":"https://downloads.mesosphere.com/dcos-commons/artifacts/0.55.2/dcos-service-cli.exe"
+        }
+      }
+    }
+  }
+}
