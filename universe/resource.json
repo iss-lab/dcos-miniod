@@ -15,8 +15,8 @@
     },
     "container": {
       "docker": {
-          "minio-cluster": "minio/minio:RELEASE.2018-07-31T02-11-47Z", 
-          "mc-cluster": "minio/mc:RELEASE.2018-09-10T23-39-12Z"
+          "minio-cluster": "minio/minio:RELEASE.2020-08-05T21-34-13Z", 
+          "mc-cluster": "minio/mc:RELEASE.2020-07-31T23-34-13Z"
       }
     }
   },

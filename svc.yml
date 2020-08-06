@@ -7,6 +7,17 @@ pods:
    count: {{MINIO_NODE_COUNT}}
    image: {{MINIO_DOCKER_IMAGE}}
    placement: '{{{MINIO_NODE_PLACEMENT}}}'
+   {{#MINIO_NODE_DISK_PATH}}
+   host-volumes:
+      minio-data-path:
+        host-path: {{MINIO_NODE_DISK_PATH}}
+        container-path: data-path
+      {{#CACHE_DISK_PATH}}
+      minio-cache-path:
+        host-path: {{CACHE_DISK_PATH}}
+        container-path: cache-path
+      {{/CACHE_DISK_PATH}}
+   {{/MINIO_NODE_DISK_PATH}}
    {{#ENABLE_VIRTUAL_NETWORK}}
    networks:
      {{VIRTUAL_NETWORK_NAME}}:
@@ -69,26 +80,12 @@ pods:
             {{/ENABLE_MINIO_CACHE}}
             export MINIO_HTTP_TRACE=/$MESOS_SANDBOX/stdout
             ./bootstrap
-            
+
             VAR=0
-            STATUS=0
-            for k in `seq 1 100` ; do
-                while [ $VAR -lt $COUNT ]; do
-                    curl -I -s http://miniod-${VAR}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}
-                    if [ 6 -eq $? ]
-                    then
-                        STATUS=0
-                        break
-                    else
-                        STATUS=1
-                    fi
-                    let VAR=VAR+1
-                done
-                if [ $STATUS -eq 1 ]
-                then
-                    break
-                fi
-                sleep 2s
+            RESOLVE_HOSTS=""
+            while [ $VAR -lt $COUNT ]; do
+              RESOLVE_HOSTS="${RESOLVE_HOSTS} miniod-${VAR}-node.${FRAMEWORK_HOST},"
+              let VAR=VAR+1
             done
 
             {{#MINIO_SSL_ENABLED}}
@@ -103,13 +100,22 @@ pods:
             COUNTER=0
             while [ $COUNTER -lt $COUNT ]; do
             {{#MINIO_SSL_ENABLED}}
-            MINIO_CMD="${MINIO_CMD} https://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/${MESOS_SANDBOX}/data-path"
+            MINIO_CMD="${MINIO_CMD} https://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}${MESOS_SANDBOX}/data-path"
             {{/MINIO_SSL_ENABLED}}
             {{^MINIO_SSL_ENABLED}}
-            MINIO_CMD="${MINIO_CMD} http://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/${MESOS_SANDBOX}/data-path"
+            MINIO_CMD="${MINIO_CMD} http://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}${MESOS_SANDBOX}/data-path"
             {{/MINIO_SSL_ENABLED}}
             let COUNTER=COUNTER+1 
             done 
+
+            echo "Waiting for ${RESOLVE_HOSTS} to resolve..."
+            ./bootstrap --resolve-hosts ${RESOLVE_HOSTS}
+
+            sleep 20
+
+            echo "Waiting for ${RESOLVE_HOSTS} to resolve again..."
+            ./bootstrap --resolve-hosts ${RESOLVE_HOSTS}
+
             exec ${MINIO_CMD}
        {{#MINIO_SSL_ENABLED}}
        transport-encryption:

@@ -135,9 +135,18 @@
     "MINIO_NODE_DISK": "{{minio.disk}}",
     "MINIO_NODE_DISK_TYPE": "{{minio.disk_type}}",
 
+    {{#minio.disk_path}}
+    "MINIO_NODE_DISK_PATH": "{{minio.disk_path}}",
+    {{/minio.disk_path}}
+    
     "STHREE_COMPATIBLE_URI": "{{minio.backup_store_endpoint}}",
     "CACHE_DISK": "{{minio.cache_disk}}",
     "CACHE_DISK_TYPE": "{{minio.cache_disk_type}}",
+
+    {{#minio.cache_disk_path}}
+    "CACHE_DISK_PATH": "{{minio.cache_disk_path}}",
+    {{/minio.cache_disk_path}}
+
     "MINIO_NODE_PORT": "{{minio.minio_port}}",
 
     "MINIO_DOCKER_IMAGE": "{{resource.assets.container.docker.minio-cluster}}",
