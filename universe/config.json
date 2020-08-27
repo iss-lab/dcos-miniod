@@ -213,7 +213,12 @@
                 "description": "Only specify if storing data outside of sandbox", 
                 "type": "string", 
                 "default": ""
-            }
+              },
+              "CONFIG_MUSTACHE_BASE64": {
+                  "title": "MinioD Config",
+                  "description": "Get MinioD Config in Base64",
+                  "type": "string"
+              }
           }, 
           "required": [
               "count", 
