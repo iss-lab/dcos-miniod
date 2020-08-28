@@ -214,7 +214,7 @@
                 "type": "string", 
                 "default": ""
               },
-              "CONFIG_MUSTACHE_BASE64": {
+              "TASKCFG_ALL_CONFIG_MUSTACHE_BASE64": {
                   "title": "MinioD Config",
                   "description": "Get MinioD Config in Base64",
                   "type": "string"

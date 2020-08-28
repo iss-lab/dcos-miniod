@@ -1,1 +1,3 @@
+dist/
 config.yml
+.DS_Store
