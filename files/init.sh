@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
 set -o errexit -o pipefail
-[ ! -z ${TASKCFG_ALL_CONFIG_MUSTACHE_BASE64} ] && \
-  rm -f ${MESOS_SANDBOX}/scheduler/config.json.mustache && \
-  echo "${TASKCFG_ALL_CONFIG_MUSTACHE_BASE64}" | base64 -d > ${MESOS_SANDBOX}/scheduler/config.json.mustache
+
 if [ "$MINIO_SECRETS_ENABLED" == true ]
 then
     export MINIO_ACCESS_KEY=`cat $MESOS_SANDBOX/access_key_file`

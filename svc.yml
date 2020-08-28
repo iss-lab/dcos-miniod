@@ -61,9 +61,6 @@ pods:
        resource-set: node-resources
        goal: RUNNING
        cmd: |
-            [ ! -z ${TASKCFG_ALL_CONFIG_MUSTACHE_BASE64} ] && \
-            rm -f ${MESOS_SANDBOX}/scheduler/config.json.mustache && \
-            echo "${TASKCFG_ALL_CONFIG_MUSTACHE_BASE64}" | base64 -d > ${MESOS_SANDBOX}/scheduler/config.json.mustache
             {{#MINIO_SECRETS_ENABLED}}
             export MINIO_ACCESS_KEY=`cat $MESOS_SANDBOX/access_key_file`
             export MINIO_SECRET_KEY=`cat $MESOS_SANDBOX/secret_key_file`
