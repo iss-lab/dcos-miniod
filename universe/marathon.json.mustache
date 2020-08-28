@@ -167,16 +167,41 @@
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "CONFIG_MUSTACHE_BASE64 ": "{{minio.CONFIG_MUSTACHE_BASE64}}"
   },
-  "uris": [
-    "{{resource.assets.uris.bootstrap-zip}}",
-    "{{resource.assets.uris.jre-tar-gz}}",
-    "{{resource.assets.uris.scheduler-zip}}",
-    "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
-    "{{resource.assets.uris.svc}}",
-    "{{resource.assets.uris.scheduler-init-sh}}",
-    "{{resource.assets.uris.minio-init-sh}}",
-    "{{resource.assets.uris.minio-synchronize-sh}}",
-    "{{resource.assets.uris.minio-config}}"
+  "fetch": [
+    {
+      "uri": "{{resource.assets.uris.bootstrap-zip}}",
+      "extract": true
+    },
+    {
+      "uri": "{{resource.assets.uris.jre-tar-gz}}",
+      "extract": true
+    },
+    {
+      "uri": "{{resource.assets.uris.scheduler-zip}}",
+      "extract": true
+    },
+    {
+      "uri": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
+      "extract": true
+    },
+    {
+      "uri": "{{resource.assets.uris.svc}}"
+    },
+    {
+      "uri": "{{resource.assets.uris.scheduler-init-sh}}",
+      "executable": true
+    },
+    {
+      "uri": "{{resource.assets.uris.minio-init-sh}}",
+      "executable": true
+    },
+    {
+      "uri": "{{resource.assets.uris.minio-synchronize-sh}}",
+      "executable": true
+    },
+    {
+      "uri": "{{resource.assets.uris.minio-config}}
+    }
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,
