@@ -5,7 +5,7 @@
   "mem": 1024,
   "instances": 1,
   "user": "{{service.user}}",
-  "cmd": "./scheduler-init.sh",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/); export JAVA_HOME=${JAVA_HOME%%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./scheduler-init.sh && ./bootstrap -resolve=false -template=false && ./operator-scheduler/bin/operator svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
     "DCOS_COMMONS_UNINSTALL": "true",
@@ -165,7 +165,7 @@
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}    
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
-    "CONFIG_MUSTACHE_BASE64 ": "{{minio.CONFIG_MUSTACHE_BASE64}}"
+    "CONFIG_MUSTACHE_BASE64": "{{minio.CONFIG_MUSTACHE_BASE64}}"
   },
   "fetch": [
     {
@@ -200,7 +200,7 @@
       "executable": true
     },
     {
-      "uri": "{{resource.assets.uris.minio-config}}
+      "uri": "{{resource.assets.uris.minio-config}}"
     }
   ],
   "upgradeStrategy":{
