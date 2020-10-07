@@ -281,7 +281,7 @@ plans:
     strategy: serial
     phases:
        master-deploy:
-        strategy: parallel
+        strategy: serial
         pod: miniod
        statsd-deploy:
         strategy: parallel

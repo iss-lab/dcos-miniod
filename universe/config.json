@@ -496,7 +496,12 @@
                           "description": "Endpoint of the Kafka Broker.", 
                           "type": "string", 
                           "default": "null"
-                      }, 
+                      },
+                      "brokers_secondary": {
+                        "description": "Endpoint of the secondary Kafka Broker. Only referenced by custom minio config mustache.", 
+                        "type": "string", 
+                        "default": "null"
+                      },
                       "topic": {
                           "description": "Name of the Kafka Topic to be used.", 
                           "type": "string", 
