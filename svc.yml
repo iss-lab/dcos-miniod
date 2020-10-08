@@ -61,6 +61,7 @@ pods:
        resource-set: node-resources
        goal: RUNNING
        cmd: |
+            ### Set operator access and secret keys
             {{#MINIO_SECRETS_ENABLED}}
             export MINIO_ACCESS_KEY=`cat $MESOS_SANDBOX/access_key_file`
             export MINIO_SECRET_KEY=`cat $MESOS_SANDBOX/secret_key_file`
@@ -69,25 +70,24 @@ pods:
             export MINIO_ACCESS_KEY={{MINIO_ACCESS_KEY}}
             export MINIO_SECRET_KEY={{MINIO_SECRET_KEY}}
             {{/MINIO_SECRETS_ENABLED}}
-            export MINIO_BROWSER={{MINIO_BROWSER}}
-            export MINIO_STORAGE_CLASS_STANDARD={{MINIO_STORAGE_CLASS_STANDARD}}
-            export MINIO_STORAGE_CLASS_RRS={{MINIO_STORAGE_CLASS_RRS}}
+
+            ### Configure cache if enabled
             {{#ENABLE_MINIO_CACHE}}
             export MINIO_CACHE_EXPIRY={{MINIO_CACHE_EXPIRY}}
             export MINIO_CACHE_EXCLUDE={{MINIO_CACHE_EXCLUDE}}
             export MINIO_CACHE_MAXUSE={{MINIO_CACHE_MAXUSE}}
-            export MINIO_CACHE_DRIVES=/$MESOS_SANDBOX/cache-path
+            export MINIO_CACHE_DRIVES=$MESOS_SANDBOX/cache-path
             {{/ENABLE_MINIO_CACHE}}
-            export MINIO_HTTP_TRACE=/$MESOS_SANDBOX/stdout
+
+            ### Set uncoditional env vars
+            export MINIO_BROWSER={{MINIO_BROWSER}}
+            export MINIO_STORAGE_CLASS_STANDARD={{MINIO_STORAGE_CLASS_STANDARD}}
+            export MINIO_STORAGE_CLASS_RRS={{MINIO_STORAGE_CLASS_RRS}}
+            export MINIO_HTTP_TRACE=$MESOS_SANDBOX/stdout
+            
             ./bootstrap
 
-            VAR=0
-            RESOLVE_HOSTS=""
-            while [ $VAR -lt $COUNT ]; do
-              RESOLVE_HOSTS="${RESOLVE_HOSTS} miniod-${VAR}-node.${FRAMEWORK_HOST},"
-              let VAR=VAR+1
-            done
-
+            ### SSL Configuration
             {{#MINIO_SSL_ENABLED}}
             cat $MESOS_SANDBOX/node.crt $MESOS_SANDBOX/node.ca > $MESOS_SANDBOX/public.crt
             mkdir $MESOS_SANDBOX/certs
@@ -95,25 +95,24 @@ pods:
             cp $MESOS_SANDBOX/node.key $MESOS_SANDBOX/certs/private.key
             cp $MESOS_SANDBOX/public.crt $MESOS_SANDBOX/certs/
             cp $MESOS_SANDBOX/node.ca $MESOS_SANDBOX/certs/CAs
-            {{/MINIO_SSL_ENABLED}}
-            MINIO_CMD="/usr/bin/docker-entrypoint.sh server --config-dir $MESOS_SANDBOX --address :{{MINIO_NODE_PORT}}" 
-            COUNTER=0
-            while [ $COUNTER -lt $COUNT ]; do
-            {{#MINIO_SSL_ENABLED}}
-            MINIO_CMD="${MINIO_CMD} https://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}${MESOS_SANDBOX}/data-path"
+            NODE_SCHEME=https
             {{/MINIO_SSL_ENABLED}}
             {{^MINIO_SSL_ENABLED}}
-            MINIO_CMD="${MINIO_CMD} http://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}${MESOS_SANDBOX}/data-path"
+            NODE_SCHEME=http
             {{/MINIO_SSL_ENABLED}}
-            let COUNTER=COUNTER+1 
-            done 
+
+            RESOLVE_HOSTS=""
+            MINIO_CMD="/usr/bin/docker-entrypoint.sh server --config-dir $MESOS_SANDBOX --address :{{MINIO_NODE_PORT}}"
+            COUNTER=0
+            while [ $COUNTER -lt $COUNT ]; do
+              MINIO_CMD="${MINIO_CMD} ${NODE_SCHEME}://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}${MESOS_SANDBOX}/data-path"
+              RESOLVE_HOSTS="${RESOLVE_HOSTS} miniod-${COUNTER}-node.${FRAMEWORK_HOST},"
+              let COUNTER=COUNTER+1
+            done
 
             echo "Waiting for ${RESOLVE_HOSTS} to resolve..."
             ./bootstrap --resolve-hosts ${RESOLVE_HOSTS}
-
             sleep 20
-
-            echo "Waiting for ${RESOLVE_HOSTS} to resolve again..."
             ./bootstrap --resolve-hosts ${RESOLVE_HOSTS}
 
             exec ${MINIO_CMD}
@@ -130,12 +129,12 @@ pods:
            cmd: |
                 echo Health Check
                 {{#MINIO_SSL_ENABLED}}
-                curl -s -k -o /dev/null -w "%{http_code}" https://miniod-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/minio/health/ready
+                NODE_SCHEME=https
                 {{/MINIO_SSL_ENABLED}}
                 {{^MINIO_SSL_ENABLED}}
-                curl -s -k -o /dev/null -w "%{http_code}" http://miniod-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/minio/health/ready
+                NODE_SCHEME=http
                 {{/MINIO_SSL_ENABLED}}
-
+                curl -s -k -o /dev/null -w "%{http_code}" ${NODE_SCHEME}://miniod-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/minio/health/ready
            interval: 90 
            grace-period: 100
            max-consecutive-failures: 20
@@ -144,7 +143,13 @@ pods:
        readiness-check:
            cmd: |
                 echo Running Readiness Check
-                /usr/bin/healthcheck.sh
+                {{#MINIO_SSL_ENABLED}}
+                NODE_SCHEME=https
+                {{/MINIO_SSL_ENABLED}}
+                {{^MINIO_SSL_ENABLED}}
+                NODE_SCHEME=http
+                {{/MINIO_SSL_ENABLED}}
+                curl -s -k -o /dev/null -w "%{http_code}" ${NODE_SCHEME}://miniod-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}/minio/health/ready
            interval: 100
            delay: 10
            timeout: 120
@@ -281,7 +286,7 @@ plans:
     strategy: serial
     phases:
        master-deploy:
-        strategy: parallel
+        strategy: serial
         pod: miniod
        statsd-deploy:
         strategy: parallel
