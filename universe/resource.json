@@ -9,8 +9,8 @@
       "executor-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/0.55.2/executor.zip",
       "scheduler-zip": "https://ecosystem-repo.s3.amazonaws.com/sdk/artifacts/0.55.2/operator-scheduler.zip",
       "svc": "%(artifacts-url)s/svc.yml",
-      "scheduler-init-sh": "%(artifacts-url)s/scheduler-init.sh", 
-      "minio-config": "%(artifacts-url)s/config.json.mustache", 
+      "scheduler-init-sh": "%(artifacts-url)s/scheduler-init.sh",
+      "minio-config": "%(artifacts-url)s/config.env.mustache",
       "minio-init-sh": "%(artifacts-url)s/init.sh", 
       "minio-synchronize-sh": "%(artifacts-url)s/synchronize-buckets.sh"
     },

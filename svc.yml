@@ -39,12 +39,12 @@ pods:
            path: data-path
            type: {{MINIO_NODE_DISK_TYPE}}
            size: {{MINIO_NODE_DISK}}
-         {{#ENABLE_MINIO_CACHE}}
+         {{#TASKCFG_ALL_MINIO_CACHE_ENABLE}}
          cache-repository:
            path: cache-path
            type: {{CACHE_DISK_TYPE}}
            size: {{CACHE_DISK}}
-         {{/ENABLE_MINIO_CACHE}}
+         {{/TASKCFG_ALL_MINIO_CACHE_ENABLE}}
    {{#MINIO_SECRETS_ENABLED}}
    secrets:
      accesskey:
@@ -61,6 +61,12 @@ pods:
        resource-set: node-resources
        goal: RUNNING
        cmd: |
+            ./bootstrap
+
+            set -a
+            . ./config.env
+            set +a
+
             ### Set operator access and secret keys
             {{#MINIO_SECRETS_ENABLED}}
             export MINIO_ACCESS_KEY=`cat $MESOS_SANDBOX/access_key_file`
@@ -70,22 +76,6 @@ pods:
             export MINIO_ACCESS_KEY={{MINIO_ACCESS_KEY}}
             export MINIO_SECRET_KEY={{MINIO_SECRET_KEY}}
             {{/MINIO_SECRETS_ENABLED}}
-
-            ### Configure cache if enabled
-            {{#ENABLE_MINIO_CACHE}}
-            export MINIO_CACHE_EXPIRY={{MINIO_CACHE_EXPIRY}}
-            export MINIO_CACHE_EXCLUDE={{MINIO_CACHE_EXCLUDE}}
-            export MINIO_CACHE_MAXUSE={{MINIO_CACHE_MAXUSE}}
-            export MINIO_CACHE_DRIVES=$MESOS_SANDBOX/cache-path
-            {{/ENABLE_MINIO_CACHE}}
-
-            ### Set uncoditional env vars
-            export MINIO_BROWSER={{MINIO_BROWSER}}
-            export MINIO_STORAGE_CLASS_STANDARD={{MINIO_STORAGE_CLASS_STANDARD}}
-            export MINIO_STORAGE_CLASS_RRS={{MINIO_STORAGE_CLASS_RRS}}
-            export MINIO_HTTP_TRACE=$MESOS_SANDBOX/stdout
-            
-            ./bootstrap
 
             ### SSL Configuration
             {{#MINIO_SSL_ENABLED}}
@@ -102,7 +92,7 @@ pods:
             {{/MINIO_SSL_ENABLED}}
 
             RESOLVE_HOSTS=""
-            MINIO_CMD="/usr/bin/docker-entrypoint.sh server --config-dir $MESOS_SANDBOX --address :{{MINIO_NODE_PORT}}"
+            MINIO_CMD="/usr/bin/docker-entrypoint.sh server --address :{{MINIO_NODE_PORT}}"
             COUNTER=0
             while [ $COUNTER -lt $COUNT ]; do
               MINIO_CMD="${MINIO_CMD} ${NODE_SCHEME}://miniod-${COUNTER}-node.${FRAMEWORK_HOST}:{{MINIO_NODE_PORT}}${MESOS_SANDBOX}/data-path"
@@ -123,8 +113,8 @@ pods:
        {{/MINIO_SSL_ENABLED}}
        configs:
          minio.properties:
-           template: config.json.mustache
-           dest: config.json
+           template: config.env.mustache
+           dest: config.env
        health-check:
            cmd: |
                 echo Health Check

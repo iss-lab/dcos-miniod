@@ -35,94 +35,9 @@
 
     "MINIO_ACCESS_KEY": "{{minio.minio_access_key}}",
     "MINIO_SECRET_KEY": "{{minio.minio_secret_key}}",
-    "MINIO_BROWSER": "{{minio.minio_browser}}",
-    "MINIO_STORAGE_CLASS_STANDARD": "{{minio.minio_storage_class_standard}}",
-    "MINIO_STORAGE_CLASS_RRS": "{{minio.minio_storage_class_rrs}}",
-    {{#minio.minio_cache_enable}}
-    "ENABLE_MINIO_CACHE": "true",
-    "MINIO_CACHE_EXPIRY": "{{minio.minio_cache_expiry}}",
-    "MINIO_CACHE_EXCLUDE": "{{minio.minio_cache_exclude}}",
-    "MINIO_CACHE_MAXUSE": "{{minio.minio_cache_maxuse}}",
-    {{/minio.minio_cache_enable}}
 
     "MINIO_SSL_ENABLED": "{{service.ssl_enabled}}",
     "MINIO_SECRETS_ENABLED": "{{minio.enable_secrets}}",
-
-    "TASKCFG_ALL_NOTIFY_AMQP_ENABLE": "{{notify.amqp.enable}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_URL": "{{notify.amqp.url}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_EXCHANGE": "{{notify.amqp.exchange}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_ROUTINGKEY": "{{notify.amqp.routingKey}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_EXCHANGETYPE": "{{notify.amqp.exchangeType}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_DELIVERYMODE": "{{notify.amqp.deliveryMode}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_MANDATORY": "{{notify.amqp.mandatory}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_IMMEDIATE": "{{notify.amqp.immediate}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_DURABLE": "{{notify.amqp.durable}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_INTERNAL": "{{notify.amqp.internal}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_NOWAIT": "{{notify.amqp.noWait}}",
-    "TASKCFG_ALL_NOTIFY_AMQP_AUTODELETE": "{{notify.amqp.autoDeleted}}",
-
-    "TASKCFG_ALL_NOTIFY_NATS_ENABLE": "{{notify.nats.enable}}",
-    "TASKCFG_ALL_NOTIFY_NATS_ADDRESS": "{{notify.nats.address}}",
-    "TASKCFG_ALL_NOTIFY_NATS_SUBJECT": "{{notify.nats.subject}}",
-    "TASKCFG_ALL_NOTIFY_NATS_USERNAME": "{{notify.nats.username}}",
-    "TASKCFG_ALL_NOTIFY_NATS_PASSWORD": "{{notify.nats.password}}",
-    "TASKCFG_ALL_NOTIFY_NATS_TOKEN": "{{notify.nats.token}}",
-    "TASKCFG_ALL_NOTIFY_NATS_SECURE": "{{notify.nats.secure}}",
-    "TASKCFG_ALL_NOTIFY_NATS_PINGINTERVAL": "{{notify.nats.pingInterval}}",
-    "TASKCFG_ALL_NOTIFY_NATS_STREAMING_ENABLE": "{{notify.nats.streaming.enable}}",
-    "TASKCFG_ALL_NOTIFY_NATS_STREAMING_CLUSTERID": "{{notify.nats.streaming.clusterId}}",
-    "TASKCFG_ALL_NOTIFY_NATS_STREAMING_CLIENTID": "{{notify.nats.streaming.cleintId}}",
-    "TASKCFG_ALL_NOTIFY_NATS_STREAMING_ASYNC": "{{notify.nats.streaming.async}}",
-    "TASKCFG_ALL_NOTIFY_NATS_STREAMING_MAXPUBACKSINFLIGHT": "{{notify.nats.streaming.maxPubAcksInflight}}",
-
-    "TASKCFG_ALL_NOTIFY_ELASTICSEARCH_ENABLE": "{{notify.elasticsearch.enable}}",
-    "TASKCFG_ALL_NOTIFY_ELASTICSEARCH_FORMAT": "{{notify.elasticsearch.format}}",
-    "TASKCFG_ALL_NOTIFY_ELASTICSEARCH_URL": "{{notify.elasticsearch.url}}",
-    "TASKCFG_ALL_NOTIFY_ELASTICSEARCH_INDEX": "{{notify.elasticsearch.index}}",
-
-    "TASKCFG_ALL_NOTIFY_REDIS_ENABLE": "{{notify.redis.enable}}",
-    "TASKCFG_ALL_NOTIFY_REDIS_FORMAT": "{{notify.redis.format}}",
-    "TASKCFG_ALL_NOTIFY_REDIS_ADDRESS": "{{notify.redis.address}}",
-    "TASKCFG_ALL_NOTIFY_REDIS_PASSWORD": "{{notify.redis.password}}",
-    "TASKCFG_ALL_NOTIFY_REDIS_KEY": "{{notify.redis.key}}",
-
-    "TASKCFG_ALL_NOTIFY_POSTGRESQL_ENABLE": "{{notify.postgresql.enable}}",
-    "TASKCFG_ALL_NOTIFY_POSTGRESQL_FORMAT": "{{notify.postgresql.format}}",
-    "TASKCFG_ALL_NOTIFY_POSTGRESQL_CONNECTIONSTRING": "{{notify.postgresql.connectionString}}",
-    "TASKCFG_ALL_NOTIFY_POSTGRESQL_TABLE": "{{notify.postgresql.table}}",
-    "TASKCFG_ALL_NOTIFY_POSTGRESQL_HOST": "{{notify.postgresql.host}}",
-    "TASKCFG_ALL_NOTIFY_POSTGRESQL_PORT": "{{notify.postgresql.port}}",
-    "TASKCFG_ALL_NOTIFY_POSTGRESQL_USER": "{{notify.postgresql.user}}",
-    "TASKCFG_ALL_NOTIFY_POSTGRESQL_PASSWORD": "{{notify.postgresql.password}}",
-    "TASKCFG_ALL_NOTIFY_POSTGRESQL_DATABASE": "{{notify.postgresql.database}}",
-
-    "TASKCFG_ALL_NOTIFY_KAFKA_ENABLE": "{{notify.kafka.enable}}",
-    "TASKCFG_ALL_NOTIFY_KAFKA_BROKERS": "{{notify.kafka.brokers}}",
-    "TASKCFG_ALL_NOTIFY_KAFKA_BROKERS_SECONDARY": "{{notify.kafka.brokers_secondary}}",
-    "TASKCFG_ALL_NOTIFY_KAFKA_TOPIC": "{{notify.kafka.topic}}",
-
-    "TASKCFG_ALL_NOTIFY_WEBHOOK_ENABLE": "{{notify.webhook.enable}}",
-    "TASKCFG_ALL_NOTIFY_WEBHOOK_ENDPOINT": "{{notify.webhook.endpoint}}",
-
-    "TASKCFG_ALL_NOTIFY_MYSQL_ENABLE": "{{notify.mysql.enable}}",
-    "TASKCFG_ALL_NOTIFY_MYSQL_FORMAT": "{{notify.mysql.format}}",
-    "TASKCFG_ALL_NOTIFY_MYSQL_DSNSTRING": "{{notify.mysql.dsnString}}",
-    "TASKCFG_ALL_NOTIFY_MYSQL_TABLE": "{{notify.mysql.table}}",
-    "TASKCFG_ALL_NOTIFY_MYSQL_HOST": "{{notify.mysql.host}}",
-    "TASKCFG_ALL_NOTIFY_MYSQL_PORT": "{{notify.mysql.port}}",
-    "TASKCFG_ALL_NOTIFY_MYSQL_USER": "{{notify.mysql.user}}",
-    "TASKCFG_ALL_NOTIFY_MYSQL_PASSWORD": "{{notify.mysql.password}}",
-    "TASKCFG_ALL_NOTIFY_MYSQL_DATABASE": "{{notify.mysql.database}}",
-
-    "TASKCFG_ALL_NOTIFY_MQTT_ENABLE": "{{notify.mqtt.enable}}",
-    "TASKCFG_ALL_NOTIFY_MQTT_BROKER": "{{notify.mqtt.broker}}",
-    "TASKCFG_ALL_NOTIFY_MQTT_TOPIC": "{{notify.mqtt.topic}}",
-    "TASKCFG_ALL_NOTIFY_MQTT_QOS": "{{notify.mqtt.qos}}",
-    "TASKCFG_ALL_NOTIFY_MQTT_CLIENTID": "{{notify.mqtt.clientId}}",
-    "TASKCFG_ALL_NOTIFY_MQTT_USERNAME": "{{notify.mqtt.username}}",
-    "TASKCFG_ALL_NOTIFY_MQTT_PASSWORD": "{{notify.mqtt.password}}",
-    "TASKCFG_ALL_NOTIFY_MQTT_RECONNECTINTERVAL": "{{notify.mqtt.reconnectInterval}}",
-    "TASKCFG_ALL_NOTIFY_MQTT_KEEPALIVEINTERVAL": "{{notify.mqtt.keepAliveInterval}}",
 
     "MINIO_NODE_COUNT": "{{minio.count}}",
     "MINIO_NODE_PLACEMENT": "{{{minio.placement_constraint}}}",
@@ -135,18 +50,20 @@
     "MINIO_NODE_MEM": "{{minio.mem}}",
     "MINIO_NODE_DISK": "{{minio.disk}}",
     "MINIO_NODE_DISK_TYPE": "{{minio.disk_type}}",
-
     {{#minio.disk_path}}
     "MINIO_NODE_DISK_PATH": "{{minio.disk_path}}",
     {{/minio.disk_path}}
     
     "STHREE_COMPATIBLE_URI": "{{minio.backup_store_endpoint}}",
+
+    {{#minio.cache_enable}}
+    "TASKCFG_ALL_MINIO_CACHE_ENABLE": "true",
     "CACHE_DISK": "{{minio.cache_disk}}",
     "CACHE_DISK_TYPE": "{{minio.cache_disk_type}}",
-
     {{#minio.cache_disk_path}}
     "CACHE_DISK_PATH": "{{minio.cache_disk_path}}",
     {{/minio.cache_disk_path}}
+    {{/minio.cache_enable}}
 
     "MINIO_NODE_PORT": "{{minio.minio_port}}",
 
